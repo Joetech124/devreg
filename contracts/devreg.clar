@@ -1,4 +1,4 @@
-;; DevReg - is a Device Registration Tracker
+;; DevReg -is a Device Registration Tracker
 
 ;; Constants for error codes
 (define-constant ERR-ALREADY-REGISTERED u100)
