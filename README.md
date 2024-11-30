@@ -1,4 +1,4 @@
-# DevReg - Device Registration Tracker
+# DevReg - is a Device Registration Tracker
 
 DevReg is a simple blockchain-based application built on the Stacks ecosystem using Clarity. It allows users to register their electronic devices with a unique identifier, ensuring no duplicate registrations.
 
