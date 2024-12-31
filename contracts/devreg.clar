@@ -34,7 +34,7 @@
           (begin
             (map-set device-registry 
               { device-id: device-id } 
-              { owner: caller, registration-time: (burn-block-height), transfer-count: u0 })
+              { owner: caller, registration-time: u0, transfer-count: u0 })
             (map-set device-metadata
               { device-id: device-id }
               { name: name, description: description })
