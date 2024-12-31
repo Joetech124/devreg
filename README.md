@@ -50,4 +50,5 @@ DevReg is designed to be a comprehensive solution for device registration and ma
 ## Next Steps
 
 - Implement a user interface for interacting with the smart contract
+- Develop a comprehensive test suite using Clarinet
 - Explore integration with other Stacks ecosystem projects
