@@ -103,3 +103,4 @@
 ;; Public function to check if a user owns any devices
 (define-read-only (user-has-devices (user principal))
   (> (default-to u0 (get device-count (map-get? user-devices { user: user }))) u0))
+  
