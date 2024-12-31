@@ -24,24 +24,21 @@
 
 ;; Public function to register a new device with metadata
 (define-public (register-device (device-id (buff 32)) (name (string-utf8 64)) (description (string-utf8 256)))
-  (let ((caller tx-sender))
-    (if (and 
-          (<= (len device-id) u32)
-          (<= (len name) u64)
-          (<= (len description) u256))
-        (match (map-get? device-registry { device-id: device-id })
-          success ERR_ALREADY_REGISTERED
-          (begin
-            (map-set device-registry 
-              { device-id: device-id } 
-              { owner: caller, registration-time: u0, transfer-count: u0 })
-            (map-set device-metadata
-              { device-id: device-id }
-              { name: name, description: description })
-            (map-set user-devices { user: caller } 
-              { device-count: (+ u1 (default-to u0 (get device-count (map-get? user-devices { user: caller })))) })
-            (ok true)))
-        ERR_INVALID_INPUT)))
+  (let 
+    ((caller tx-sender))
+    (asserts! (and (<= (len device-id) u32) (<= (len name) u64) (<= (len description) u256)) ERR_INVALID_INPUT)
+    (match (map-get? device-registry { device-id: device-id })
+      success ERR_ALREADY_REGISTERED
+      (begin
+        (map-set device-registry 
+          { device-id: device-id } 
+          { owner: caller, registration-time: u0, transfer-count: u0 })
+        (map-set device-metadata
+          { device-id: device-id }
+          { name: name, description: description })
+        (map-set user-devices { user: caller } 
+          { device-count: (+ u1 (default-to u0 (get device-count (map-get? user-devices { user: caller })))) })
+        (ok true)))))
 
 ;; Public function to check if a device is registered
 (define-read-only (is-device-registered (device-id (buff 32)))
@@ -64,36 +61,37 @@
   (let 
     ((caller tx-sender)
      (transfer-limit u5))
+    (asserts! (<= (len device-id) u32) ERR_INVALID_INPUT)
     (match (map-get? device-registry { device-id: device-id })
       registration 
-        (if (is-eq (get owner registration) caller)
-            (if (< (get transfer-count registration) transfer-limit)
-                (begin
-                  (map-set device-registry { device-id: device-id } 
-                    { owner: new-owner, 
-                      registration-time: (get registration-time registration), 
-                      transfer-count: (+ u1 (get transfer-count registration)) })
-                  (map-set user-devices { user: caller } 
-                    { device-count: (- (default-to u0 (get device-count (map-get? user-devices { user: caller }))) u1) })
-                  (map-set user-devices { user: new-owner } 
-                    { device-count: (+ u1 (default-to u0 (get device-count (map-get? user-devices { user: new-owner })))) })
-                  (ok true))
-                ERR_TRANSFER_LIMIT)
-            ERR_NOT_OWNER)
+        (begin
+          (asserts! (is-eq (get owner registration) caller) ERR_NOT_OWNER)
+          (asserts! (< (get transfer-count registration) transfer-limit) ERR_TRANSFER_LIMIT)
+          (asserts! (not (is-eq new-owner caller)) ERR_INVALID_INPUT)
+          (map-set device-registry { device-id: device-id } 
+            { owner: new-owner, 
+              registration-time: (get registration-time registration), 
+              transfer-count: (+ u1 (get transfer-count registration)) })
+          (map-set user-devices { user: caller } 
+            { device-count: (- (default-to u0 (get device-count (map-get? user-devices { user: caller }))) u1) })
+          (map-set user-devices { user: new-owner } 
+            { device-count: (+ u1 (default-to u0 (get device-count (map-get? user-devices { user: new-owner })))) })
+          (ok true))
       ERR_NOT_FOUND)))
 
 ;; Public function to update device metadata
 (define-public (update-device-metadata (device-id (buff 32)) (name (string-utf8 64)) (description (string-utf8 256)))
-  (let ((caller tx-sender))
+  (let 
+    ((caller tx-sender))
+    (asserts! (and (<= (len device-id) u32) (<= (len name) u64) (<= (len description) u256)) ERR_INVALID_INPUT)
     (match (map-get? device-registry { device-id: device-id })
       registration 
-        (if (is-eq (get owner registration) caller)
-            (begin
-              (map-set device-metadata
-                { device-id: device-id }
-                { name: name, description: description })
-              (ok true))
-            ERR_NOT_OWNER)
+        (begin
+          (asserts! (is-eq (get owner registration) caller) ERR_NOT_OWNER)
+          (map-set device-metadata
+            { device-id: device-id }
+            { name: name, description: description })
+          (ok true))
       ERR_NOT_FOUND)))
 
 ;; Public function to get the number of devices registered by a user
