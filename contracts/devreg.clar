@@ -34,7 +34,7 @@
           (begin
             (map-set device-registry 
               { device-id: device-id } 
-              { owner: caller, registration-time: block-height, transfer-count: u0 })
+              { owner: caller, registration-time: (burn-block-height), transfer-count: u0 })
             (map-set device-metadata
               { device-id: device-id }
               { name: name, description: description })
@@ -103,4 +103,3 @@
 ;; Public function to check if a user owns any devices
 (define-read-only (user-has-devices (user principal))
   (> (default-to u0 (get device-count (map-get? user-devices { user: user }))) u0))
-  
